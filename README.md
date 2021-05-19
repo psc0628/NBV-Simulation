@@ -6,3 +6,7 @@ For nbv_net, please follow https://github.com/irvingvasquez/nbv-net.
 We tested our codes on Windows 10. For other system, please check the file read/write or multithreading commands in the codes.
 ## Note
 Change "const static size_t maxSize = 100000;" to "const static size_t maxSize = 1000" in file OcTreeKey.h, so that the code will run faster.
+## Usage
+1
+## Questions
+Please contact 18210240033@fudan.edu.cn
