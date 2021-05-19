@@ -7,10 +7,10 @@ We tested our codes on Windows 10. For other system, please check the file read/
 ## Note
 Change "const static size_t maxSize = 100000;" to "const static size_t maxSize = 1000" in file OcTreeKey.h, so that the code will run faster.
 ## Usage
-1. Sample your 3d object model from *.obj or *.ply to *.pcd, and there is an example in 3d_models. For the sampling method, please follow   https://github.com/PointCloudLibrary/pcl/blob/master/tools/mesh_sampling.cpp.
+1. Sample your 3d object model from *.obj or *.ply to *.pcd, and there is an example in directory 3d_models. For the sampling method, please follow   https://github.com/PointCloudLibrary/pcl/blob/master/tools/mesh_sampling.cpp.
 2. Change the directory and model name in file DefaultConfiguration.yaml.
 3. Put the file DefaultConfiguration.yaml in the correct path, and then run compiled program of main.cpp.
-4. For the method_of_IG: Ours is 0, OA is 1, UV is 2, RSE is 3, APORA is 4, Kr is 5, NBVNET is 6. If you want to run with NBV-Net, please run both compiled program of main.cpp and "python nbv_net/run_test.py model_name" in pytorch environment.
+4. For the method_of_IG: Ours is 0, OA is 1, UV is 2, RSE is 3, APORA is 4, Kr is 5, NBVNET is 6. If you want to run with NBV-Net, please run both compiled program of main.cpp and "python nbv_net/run_test.py model_name" in pytorch environment at the same time.
 5. There is a parameter "show", by default is 1, which means that the middle cloud will be shown in a pcl window, close it to continue. If you don't want to show the middle cloud, change it to 0.
 ## Questions
 Please contact 18210240033@fudan.edu.cn
