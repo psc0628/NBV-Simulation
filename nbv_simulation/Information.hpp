@@ -40,7 +40,7 @@ public:
 		stop = _stop;
 	}
 
-	bool operator ==(const Ray& other) const {//ÓÃÓÚ²éÑ¯ 		
+	bool operator ==(const Ray& other) const {//ç”¨äºæŸ¥è¯¢ 		
 		return (origin == other.origin) && (end == other.end); 	
 	}
 };
@@ -48,7 +48,7 @@ public:
 class Ray_Hash
 {
 public:
-	size_t operator() (const Ray& ray) const {//ÀûÓÃ6¸öµãµÄdoubleÀ´hash
+	size_t operator() (const Ray& ray) const {//åˆ©ç”¨6ä¸ªç‚¹çš„doubleæ¥hash
 		return octomap::OcTreeKey::KeyHash()(ray.origin) ^ octomap::OcTreeKey::KeyHash()(ray.end);
 	}
 };
@@ -122,7 +122,7 @@ public:
 
 	Views_Information(Share_Data* share_data, Voxel_Information* _voxel_information , View_Space* view_space,int iterations)
 	{
-		//¸üĞÂÄÚ²¿Êı¾İ
+		//æ›´æ–°å†…éƒ¨æ•°æ®
 		voxel_information = _voxel_information;
 		cost_weight = share_data->cost_weight;
 		color_intrinsics = share_data->color_intrinsics;
@@ -132,7 +132,7 @@ public:
 		voxel_information->octomap_resolution = octomap_resolution;
 		alpha = 0.1 / octomap_resolution;
 		voxel_information->skip_coefficient = share_data->skip_coefficient;
-		//×¢ÒâÊÓµãĞèÒª°´ÕÕidÅÅĞòÀ´½¨Á¢Ó³Éä
+		//æ³¨æ„è§†ç‚¹éœ€è¦æŒ‰ç…§idæ’åºæ¥å»ºç«‹æ˜ å°„
 		sort(view_space->views.begin(), view_space->views.end(), view_id_compare);
 		double now_time = clock();
 		views_to_rays_map = new unordered_map<int, vector<int>>();
@@ -140,15 +140,15 @@ public:
 		rays_map = new unordered_map<Ray, int, Ray_Hash>();
 		object_weight = new unordered_map<octomap::OcTreeKey, double, octomap::OcTreeKey::KeyHash>();
 		occupancy_map = new unordered_map<octomap::OcTreeKey, double, octomap::OcTreeKey::KeyHash>();
-		//¶¨Òåfrontier
+		//å®šä¹‰frontier
 		vector<octomap::point3d> points;
 		pcl::PointCloud<pcl::PointXYZ>::Ptr edge(new pcl::PointCloud<pcl::PointXYZ>);
 		double map_size = view_space->predicted_size;
-		//²éÕÒµØÍ¼ÖĞµÄedge
+		//æŸ¥æ‰¾åœ°å›¾ä¸­çš„edge
 		for (octomap::ColorOcTree::leaf_iterator it = octo_model->begin_leafs(), end = octo_model->end_leafs(); it != end; ++it)
 		{
 			double occupancy = (*it).getOccupancy();
-			//¼ÇÂ¼bbxÖĞkeyµ½occÂÊµÄÓ³Éä£¬ÓÃÓÚÖØ¸´²éÑ¯
+			//è®°å½•bbxä¸­keyåˆ°occç‡çš„æ˜ å°„ï¼Œç”¨äºé‡å¤æŸ¥è¯¢
 			(*occupancy_map)[it.getKey()] = occupancy;
 			if (voxel_information->is_unknown(occupancy)) {
 				auto coordinate = it.getCoordinate();
@@ -163,7 +163,7 @@ public:
 		}
 		pre_edge_cnt = 0x3f3f3f3f;
 		edge_cnt = edge->points.size();
-		//¸ù¾İ×îÁÚ½üfrontier£¬¼ÆËãµØÍ¼ÖĞ¸ÃµãµÄÊÇÎïÌå±íÃæµÄ¿ÉÄÜĞÔ
+		//æ ¹æ®æœ€é‚»è¿‘frontierï¼Œè®¡ç®—åœ°å›¾ä¸­è¯¥ç‚¹çš„æ˜¯ç‰©ä½“è¡¨é¢çš„å¯èƒ½æ€§
 		if (edge->points.size() != 0) {
 			pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
 			kdtree.setInputCloud(edge);
@@ -188,14 +188,14 @@ public:
 		cout << "occupancy_map is " << occupancy_map->size() << endl;
 		cout << "edge is " << edge->points.size() << endl;
 		cout << "object_map is " << object_weight->size() << endl;
-		//¸ù¾İBBX¼ÆËã×î¶àÓĞ¶àÉÙÉäÏß£¬ÉäÏß¸öÊı×î¶àÎª±íÃæ»ı´óĞ¡*Ìå»ı£¬ÓÃÓÚ·ÖÅäÖ¸ÕëÄÚ´æ
+		//æ ¹æ®BBXè®¡ç®—æœ€å¤šæœ‰å¤šå°‘å°„çº¿ï¼Œå°„çº¿ä¸ªæ•°æœ€å¤šä¸ºè¡¨é¢ç§¯å¤§å°*ä½“ç§¯ï¼Œç”¨äºåˆ†é…æŒ‡é’ˆå†…å­˜
 		double pre_line_point = 2.0 * map_size / octomap_resolution;
 		long long superficial = ceil(5.0 * pre_line_point * pre_line_point);
 		long long volume = ceil(pre_line_point * pre_line_point * pre_line_point);
 		max_num_of_rays = superficial* volume;
 		rays_info = new Ray_Information * [max_num_of_rays];
 		cout << "full rays num is " << max_num_of_rays << endl;
-		//¼ÆËãBBXµÄ°Ë¸ö¶¥µã£¬ÓÃÓÚ»®¶¨ÉäÏß·¶Î§
+		//è®¡ç®—BBXçš„å…«ä¸ªé¡¶ç‚¹ï¼Œç”¨äºåˆ’å®šå°„çº¿èŒƒå›´
 		vector<Eigen::Vector4d> convex_3d;
 		double x1 = view_space->object_center_world(0) - map_size;
 		double x2 = view_space->object_center_world(0) + map_size;
@@ -212,27 +212,27 @@ public:
 		convex_3d.push_back(Eigen::Vector4d(x2, y1, z2, 1));
 		convex_3d.push_back(Eigen::Vector4d(x2, y2, z2, 1));
 		voxel_information->convex = convex_3d;
-		//·ÖÅäÊÓµãµÄÉäÏßÉú³ÉÆ÷
+		//åˆ†é…è§†ç‚¹çš„å°„çº¿ç”Ÿæˆå™¨
 		thread** ray_caster = new thread *[view_space->views.size()];
-		//ÉäÏß³õÊ¼ÏÂ±ê´Ó0¿ªÊ¼
+		//å°„çº¿åˆå§‹ä¸‹æ ‡ä»0å¼€å§‹
 		ray_num = 0;
 		for (int i = 0; i < view_space->views.size(); i++) {
-			//¶Ô¸ÃÊÓµã·Ö·¢Éú³ÉÉäÏßµÄÏß³Ì
+			//å¯¹è¯¥è§†ç‚¹åˆ†å‘ç”Ÿæˆå°„çº¿çš„çº¿ç¨‹
 			ray_caster[i] = new thread(ray_cast_thread_process, &ray_num, rays_info, rays_map, views_to_rays_map, rays_to_viwes_map, octo_model, voxel_information, view_space, &color_intrinsics, i);
 		}
-		//µÈ´ıÃ¿¸öÊÓµãÉäÏßÉú³ÉÆ÷¼ÆËãÍê³É
+		//ç­‰å¾…æ¯ä¸ªè§†ç‚¹å°„çº¿ç”Ÿæˆå™¨è®¡ç®—å®Œæˆ
 		for (int i = 0; i < view_space->views.size(); i++) {
 			(*ray_caster[i]).join();
 		}
 		cout << "ray_num is " << ray_num << endl;
 		cout << "All views' rays generated with executed time " << clock() - now_time << " ms. Startring compution." << endl;
-		//ÎªÃ¿ÌõÉäÏß·ÖÅäÒ»¸öÏß³Ì
+		//ä¸ºæ¯æ¡å°„çº¿åˆ†é…ä¸€ä¸ªçº¿ç¨‹
 		now_time = clock();
 		thread** rays_process = new thread* [ray_num];
 		for (int i = 0; i < ray_num; i++) {
 			rays_process[i] = new thread(ray_information_thread_process, i, rays_info, rays_map, occupancy_map, object_weight, octo_model, voxel_information, view_space, method);
 		}
-		//µÈ´ıÉäÏß¼ÆËãÍê³É
+		//ç­‰å¾…å°„çº¿è®¡ç®—å®Œæˆ
 		for (int i = 0; i < ray_num; i++) {
 			(*rays_process[i]).join();	
 		}
@@ -241,14 +241,14 @@ public:
 		share_data->access_directory(share_data->save_path + "/run_time");
 		ofstream fout(share_data->save_path + "/run_time/IG" + to_string(view_space->id) + ".txt");
 		fout << cost_time << endl;
-		//·ÖÅäÊÓµãµÄĞÅÏ¢Í³¼ÆÆ÷
+		//åˆ†é…è§†ç‚¹çš„ä¿¡æ¯ç»Ÿè®¡å™¨
 		now_time = clock();
 		thread** view_gain = new thread * [view_space->views.size()];
 		for (int i = 0; i < view_space->views.size(); i++) {
-			//¶Ô¸ÃÊÓµã·Ö·¢ĞÅÏ¢Í³¼ÆµÄÏß³Ì
+			//å¯¹è¯¥è§†ç‚¹åˆ†å‘ä¿¡æ¯ç»Ÿè®¡çš„çº¿ç¨‹
 			view_gain[i] = new thread(information_gain_thread_process, rays_info, views_to_rays_map, view_space, i);
 		}
-		//µÈ´ıÃ¿¸öÊÓµãĞÅÏ¢Í³¼ÆÍê³É
+		//ç­‰å¾…æ¯ä¸ªè§†ç‚¹ä¿¡æ¯ç»Ÿè®¡å®Œæˆ
 		for (int i = 0; i < view_space->views.size(); i++) {
 			(*view_gain[i]).join();
 		}
@@ -256,28 +256,28 @@ public:
 	}
 	
 	void update(Share_Data* share_data, View_Space* view_space,int iterations) {
-		//¸üĞÂÄÚ²¿Êı¾İ
+		//æ›´æ–°å†…éƒ¨æ•°æ®
 		double now_time = clock();
 		double map_size = view_space->predicted_size;
-		//×¢ÒâÊÓµãĞèÒª°´ÕÕidÅÅĞòÀ´½¨Á¢Ó³Éä
+		//æ³¨æ„è§†ç‚¹éœ€è¦æŒ‰ç…§idæ’åºæ¥å»ºç«‹æ˜ å°„
 		sort(view_space->views.begin(), view_space->views.end(), view_id_compare);
-		//ÖØĞÂ¼ÇÂ¼°Ë²æÊ÷
+		//é‡æ–°è®°å½•å…«å‰æ ‘
 		octo_model = share_data->octo_model;
 		octomap_resolution = share_data->octomap_resolution;
 		alpha = 0.1 / octomap_resolution;
 		voxel_information->octomap_resolution = octomap_resolution;
 		voxel_information->skip_coefficient = share_data->skip_coefficient;
-		//Çå¿ÕÊÓµãĞÅÏ¢
+		//æ¸…ç©ºè§†ç‚¹ä¿¡æ¯
 		for (int i = 0; i < view_space->views.size(); i++) {
 			view_space->views[i].information_gain = 0;
 			view_space->views[i].voxel_num = 0;
 		}
-		//±ÜÃâÖØ¸´search
+		//é¿å…é‡å¤search
 		delete occupancy_map;
 		occupancy_map = new unordered_map<octomap::OcTreeKey, double, octomap::OcTreeKey::KeyHash>();
 		delete object_weight;
 		object_weight = new unordered_map<octomap::OcTreeKey, double, octomap::OcTreeKey::KeyHash>();
-		//¸üĞÂfrontier
+		//æ›´æ–°frontier
 		vector<octomap::point3d> points;
 		pcl::PointCloud<pcl::PointXYZ>::Ptr edge(new pcl::PointCloud<pcl::PointXYZ>);
 		for (octomap::ColorOcTree::leaf_iterator it = octo_model->begin_leafs(), end = octo_model->end_leafs(); it != end; ++it)
@@ -298,7 +298,7 @@ public:
 		edge_cnt = edge->points.size();
 		if (edge_cnt > pre_edge_cnt) pre_edge_cnt = 0x3f3f3f3f;
 		if (edge->points.size() != 0) {
-			//¼ÆËãfrontier
+			//è®¡ç®—frontier
 			pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
 			kdtree.setInputCloud(edge);
 			std::vector<int> pointIdxNKNSearch(K);
@@ -323,15 +323,15 @@ public:
 		cout << "object_map is " << object_weight->size() << endl;
 		cout << "occupancy_map is " << occupancy_map->size() << endl;
 		cout << "frontier updated with executed time " << clock() - now_time << " ms." << endl;
-		//¼ì²âÊÇ·ñÖØÉú³É
+		//æ£€æµ‹æ˜¯å¦é‡ç”Ÿæˆ
 		now_time = clock();
 		bool regenerate = false;
 		if (view_space->object_changed) {
 			regenerate = true;
 		}
-		//Èç¹ûÖØÉú³É£¬Ôò¸üĞÂÊı¾İ½á¹¹
+		//å¦‚æœé‡ç”Ÿæˆï¼Œåˆ™æ›´æ–°æ•°æ®ç»“æ„
 		if (regenerate) {
-			//ÖØ¼ÆËã×î´óÉäÏßÊıÁ¿£¬´Ó0¿ªÊ¼
+			//é‡è®¡ç®—æœ€å¤§å°„çº¿æ•°é‡ï¼Œä»0å¼€å§‹
 			double pre_line_point = 2.0 * map_size / octomap_resolution;
 			long long superficial = ceil(5.0 * pre_line_point * pre_line_point);
 			long long volume = ceil(pre_line_point * pre_line_point * pre_line_point);
@@ -347,7 +347,7 @@ public:
 			delete rays_map;
 			rays_map = new unordered_map<Ray, int, Ray_Hash>();
 
-			//¼ÆËãBBXµÄ°Ë¸ö¶¥µã£¬ÓÃÓÚ»®¶¨ÉäÏß·¶Î§
+			//è®¡ç®—BBXçš„å…«ä¸ªé¡¶ç‚¹ï¼Œç”¨äºåˆ’å®šå°„çº¿èŒƒå›´
 			vector<Eigen::Vector4d> convex_3d;
 			double x1 = view_space->object_center_world(0) - map_size;
 			double x2 = view_space->object_center_world(0) + map_size;
@@ -364,27 +364,27 @@ public:
 			convex_3d.push_back(Eigen::Vector4d(x2, y1, z2, 1));
 			convex_3d.push_back(Eigen::Vector4d(x2, y2, z2, 1));
 			voxel_information->convex = convex_3d;
-			//·ÖÅäÊÓµãµÄÉäÏßÉú³ÉÆ÷
+			//åˆ†é…è§†ç‚¹çš„å°„çº¿ç”Ÿæˆå™¨
 			thread** ray_caster = new thread * [view_space->views.size()];
 			for (int i = 0; i < view_space->views.size(); i++) {
-				//¶Ô¸ÃÊÓµã·Ö·¢Éú³ÉÉäÏßµÄÏß³Ì
+				//å¯¹è¯¥è§†ç‚¹åˆ†å‘ç”Ÿæˆå°„çº¿çš„çº¿ç¨‹
 				ray_caster[i] = new thread(ray_cast_thread_process, &ray_num, rays_info, rays_map, views_to_rays_map, rays_to_viwes_map, octo_model, voxel_information, view_space, &color_intrinsics, i);
 			}
-			//µÈ´ıÃ¿¸öÊÓµãÉäÏßÉú³ÉÆ÷¼ÆËãÍê³É
+			//ç­‰å¾…æ¯ä¸ªè§†ç‚¹å°„çº¿ç”Ÿæˆå™¨è®¡ç®—å®Œæˆ
 			for (int i = 0; i < view_space->views.size(); i++) {
 				(*ray_caster[i]).join();
 			}
 			cout << "ray_num is " << ray_num << endl;
 			cout << "All views' rays generated with executed time " << clock() - now_time << " ms. Startring compution." << endl;
 		}
-		//ÎªÃ¿ÌõÉäÏß·ÖÅäÒ»¸öÏß³Ì
+		//ä¸ºæ¯æ¡å°„çº¿åˆ†é…ä¸€ä¸ªçº¿ç¨‹
 		now_time = clock();
 		thread** rays_process = new thread * [ray_num];
 		for (int i = 0; i < ray_num; i++) {
 			rays_info[i]->clear();
 			rays_process[i] = new thread(ray_information_thread_process, i, rays_info, rays_map, occupancy_map, object_weight, octo_model, voxel_information, view_space, method);
 		}
-		//µÈ´ıÉäÏß¼ÆËãÍê³É
+		//ç­‰å¾…å°„çº¿è®¡ç®—å®Œæˆ
 		for (int i = 0; i < ray_num; i++) {
 			(*rays_process[i]).join();
 		}
@@ -396,10 +396,10 @@ public:
 		now_time = clock();
 		thread** view_gain = new thread * [view_space->views.size()];
 		for (int i = 0; i < view_space->views.size(); i++) {
-			//¶Ô¸ÃÊÓµã·Ö·¢ĞÅÏ¢Í³¼ÆµÄÏß³Ì
+			//å¯¹è¯¥è§†ç‚¹åˆ†å‘ä¿¡æ¯ç»Ÿè®¡çš„çº¿ç¨‹
 			view_gain[i] = new thread(information_gain_thread_process, rays_info, views_to_rays_map, view_space, i);
 		}
-		//µÈ´ıÃ¿¸öÊÓµãĞÅÏ¢Í³¼ÆÍê³É
+		//ç­‰å¾…æ¯ä¸ªè§†ç‚¹ä¿¡æ¯ç»Ÿè®¡å®Œæˆ
 		for (int i = 0; i < view_space->views.size(); i++) {
 			(*view_gain[i]).join();
 		}
@@ -408,7 +408,7 @@ public:
 };
 
 void information_gain_thread_process(Ray_Information** rays_info, unordered_map<int, vector<int>>* views_to_rays_map, View_Space* view_space, int pos) {
-	//ÊÓµãµÄÃ¿¸öÏà¹ØÉäÏßĞÅÏ¢¼ÓÈëÊÓµã
+	//è§†ç‚¹çš„æ¯ä¸ªç›¸å…³å°„çº¿ä¿¡æ¯åŠ å…¥è§†ç‚¹
 	for (vector<int>::iterator it = (*views_to_rays_map)[pos].begin(); it != (*views_to_rays_map)[pos].end(); it++) {
 		view_space->views[pos].information_gain += rays_info[*it]->information_gain;
 		view_space->views[pos].voxel_num += rays_info[*it]->voxel_num;
@@ -416,18 +416,18 @@ void information_gain_thread_process(Ray_Information** rays_info, unordered_map<
 }
 
 void ray_cast_thread_process(int* ray_num, Ray_Information** rays_info, unordered_map<Ray, int, Ray_Hash>* rays_map, unordered_map<int, vector<int>>* views_to_rays_map, unordered_map<int, vector<int>>* rays_to_viwes_map, octomap::ColorOcTree* octo_model, Voxel_Information* voxel_information, View_Space* view_space, rs2_intrinsics* color_intrinsics, int pos) {
-	//»ñÈ¡ÊÓµãÎ»×Ë
+	//è·å–è§†ç‚¹ä½å§¿
 	view_space->views[pos].get_next_camera_pos(view_space->now_camera_pose_world, view_space->object_center_world);
 	Eigen::Matrix4d view_pose_world = (view_space->now_camera_pose_world * view_space->views[pos].pose.inverse()).eval();
-	//½«ÈıÎ¬ÎïÌåBBX¸ù¾İÊÓµãÎ»×Ë£¬Í¶Ó°ÖÁÍ¼Æ¬Í¹°üÇøÓò
+	//å°†ä¸‰ç»´ç‰©ä½“BBXæ ¹æ®è§†ç‚¹ä½å§¿ï¼ŒæŠ•å½±è‡³å›¾ç‰‡å‡¸åŒ…åŒºåŸŸ
 	double skip_coefficient = voxel_information->skip_coefficient;
-	//¸ù¾İÄÜ·ÃÎÊµÄÌåËØÀ´¿ØÖÆÉäÏß±éÀú£¬×¢Òâ¼ä¸ôÌøÔ¾²ÎÊı
+	//æ ¹æ®èƒ½è®¿é—®çš„ä½“ç´ æ¥æ§åˆ¶å°„çº¿éå†ï¼Œæ³¨æ„é—´éš”è·³è·ƒå‚æ•°
 	int pixel_interval = color_intrinsics->width;
 	double max_range = 6.0 * view_space->predicted_size;
 	vector<cv::Point2f> hull;
 	hull = get_convex_on_image(voxel_information->convex, view_pose_world, *color_intrinsics, pixel_interval, max_range, voxel_information->octomap_resolution);
 	//if (hull.size() != 4 && hull.size() != 5 && hull.size() != 6) cout << "hull wrong with size " << hull.size() << endl;
-	//¼ÆËãÍ¹°üµÄ°üÎ§ºĞ
+	//è®¡ç®—å‡¸åŒ…çš„åŒ…å›´ç›’
 	vector<int> boundary;
 	boundary = get_xmax_xmin_ymax_ymin_in_hull(hull, *color_intrinsics);
 	int xmax = boundary[0];
@@ -435,15 +435,15 @@ void ray_cast_thread_process(int* ray_num, Ray_Information** rays_info, unordere
 	int ymax = boundary[2];
 	int ymin = boundary[3];
 	//cout << xmax << " " << xmin << " " << ymax << " " << ymin << " ," << pixel_interval <<endl;
-	//ÖĞ¼äÊı¾İ½á¹¹
+	//ä¸­é—´æ•°æ®ç»“æ„
 	vector<Ray*> rays;
 	//int num = 0;
-	//¼ì²éÊÓµãµÄkey
+	//æ£€æŸ¥è§†ç‚¹çš„key
 	octomap::OcTreeKey key_origin;
 	bool key_origin_have = octo_model->coordToKeyChecked(view_space->views[pos].init_pos(0), view_space->views[pos].init_pos(1), view_space->views[pos].init_pos(2), key_origin);
 	if (key_origin_have) {
 		octomap::point3d origin = octo_model->keyToCoord(key_origin);
-		//±éÀú°üÎ§ºĞ
+		//éå†åŒ…å›´ç›’
 		//srand(pos);
 		//int rr = rand() % 256, gg = rand() % 256, bb = rand() % 256;
 		for (int x = xmin; x <= xmax; x += (int)(pixel_interval * skip_coefficient))
@@ -451,36 +451,36 @@ void ray_cast_thread_process(int* ray_num, Ray_Information** rays_info, unordere
 			{
 				//num++;
 				cv::Point2f pixel(x, y);
-				//¼ì²éÊÇ·ñÔÚÍ¹°üÇøÓòÄÚ²¿
+				//æ£€æŸ¥æ˜¯å¦åœ¨å‡¸åŒ…åŒºåŸŸå†…éƒ¨
 				if (!is_pixel_in_convex(hull, pixel)) continue;
-				//·´ÏòÍ¶Ó°ÕÒµ½ÖÕµã
+				//åå‘æŠ•å½±æ‰¾åˆ°ç»ˆç‚¹
 				octomap::point3d end = project_pixel_to_ray_end(x, y, *color_intrinsics, view_pose_world, max_range);
-				//ÏÔÊ¾Ò»ÏÂ
+				//æ˜¾ç¤ºä¸€ä¸‹
 				//view_space->viewer->addLine<pcl::PointXYZ>(pcl::PointXYZ(origin(0), origin(1), origin(2)), pcl::PointXYZ(end(0), end(1), end(2)), rr, gg, bb, "line" + to_string(pos) + "-" + to_string(x) + "-" + to_string(y));
 				octomap::OcTreeKey key_end;
 				octomap::point3d direction = end - origin;
 				octomap::point3d end_point;
-				//Ô½¹ıÎ´ÖªÇøÓò£¬ÕÒµ½ÖÕµã
+				//è¶Šè¿‡æœªçŸ¥åŒºåŸŸï¼Œæ‰¾åˆ°ç»ˆç‚¹
 				bool found_end_point = octo_model->castRay(origin, direction, end_point, true, max_range);
-				if (!found_end_point) {//Î´ÕÒµ½ÖÕµã£¬ÉèÖÃÖÕµãÎª×î´ó¾àÀë
+				if (!found_end_point) {//æœªæ‰¾åˆ°ç»ˆç‚¹ï¼Œè®¾ç½®ç»ˆç‚¹ä¸ºæœ€å¤§è·ç¦»
 					end_point = origin + direction.normalized() * max_range; // use max range instead of stopping at the unknown       found_endpoint = true;     
 				}
-				//¼ì²éÒ»ÏÂÄ©¶ËÊÇ·ñÔÚµØÍ¼ÏŞÖÆ·¶Î§ÄÚ£¬ÇÒÃüÖĞBBX
+				//æ£€æŸ¥ä¸€ä¸‹æœ«ç«¯æ˜¯å¦åœ¨åœ°å›¾é™åˆ¶èŒƒå›´å†…ï¼Œä¸”å‘½ä¸­BBX
 				bool key_end_have = octo_model->coordToKeyChecked(end_point, key_end);
 				if (key_end_have) {
-					//Éú³ÉÉäÏß
+					//ç”Ÿæˆå°„çº¿
 					octomap::KeyRay* ray_set = new octomap::KeyRay();
-					//»ñÈ¡ÉäÏßÊı×é£¬²»°üº¬Ä©½Úµã
+					//è·å–å°„çº¿æ•°ç»„ï¼Œä¸åŒ…å«æœ«èŠ‚ç‚¹
 					bool point_on_ray_getted = octo_model->computeRayKeys(origin, end_point, *ray_set);
 					if (!point_on_ray_getted) cout << "Warning. ray cast with wrong max_range." << endl;
 					if (ray_set->size() > 950) cout << ray_set->size() << " rewrite the vector size in octreekey.h." << endl;
-					//°ÑÖÕµã·ÅÈëÉäÏß×é
+					//æŠŠç»ˆç‚¹æ”¾å…¥å°„çº¿ç»„
 					ray_set->addKey(key_end);
-					//µÚÒ»¸ö·Ç¿Õ½Úµã×÷ÎªÉäÏßÆğµã£¬Î²°Í¿ªÊ¼×îºóÒ»¸ö·Ç¿ÕÔªËØ×÷ÎªÉäÏßÖÕµã
+					//ç¬¬ä¸€ä¸ªéç©ºèŠ‚ç‚¹ä½œä¸ºå°„çº¿èµ·ç‚¹ï¼Œå°¾å·´å¼€å§‹æœ€åä¸€ä¸ªéç©ºå…ƒç´ ä½œä¸ºå°„çº¿ç»ˆç‚¹
 					octomap::KeyRay::iterator last = ray_set->end();
 					last--;
 					while (last != ray_set->begin() && (octo_model->search(*last) == NULL)) last--;
-					//¶ş·ÖµÚÒ»¸ö·Ç¿ÕÔªËØ
+					//äºŒåˆ†ç¬¬ä¸€ä¸ªéç©ºå…ƒç´ 
 					octomap::KeyRay::iterator l = ray_set->begin();
 					octomap::KeyRay::iterator r = last;
 					octomap::KeyRay::iterator mid = l + (r - l) / 2;
@@ -495,21 +495,21 @@ void ray_cast_thread_process(int* ray_num, Ray_Information** rays_info, unordere
 					while (first  != ray_set->end() && (octo_model->keyToCoord(*first).x() < view_space->object_center_world(0) - view_space->predicted_size || octo_model->keyToCoord(*first).x() > view_space->object_center_world(0) + view_space->predicted_size
 						|| octo_model->keyToCoord(*first).y() < view_space->object_center_world(1) - view_space->predicted_size || octo_model->keyToCoord(*first).y() > view_space->object_center_world(1) + view_space->predicted_size
 						|| octo_model->keyToCoord(*first).z() < view_space->object_center_world(2) - view_space->predicted_size || octo_model->keyToCoord(*first).z() > view_space->object_center_world(2) + view_space->predicted_size)) first++;
-					//Èç¹ûÃ»ÓĞ·Ç¿ÕÔªËØ£¬Ö±½Ó¶ªÆúÉäÏß
+					//å¦‚æœæ²¡æœ‰éç©ºå…ƒç´ ï¼Œç›´æ¥ä¸¢å¼ƒå°„çº¿
 					if (last - first < 0) {
 						delete ray_set;
 						continue;
 					}
 					octomap::KeyRay::iterator stop = last;
 					stop++;
-					//ÏÔÊ¾Ò»ÏÂ
+					//æ˜¾ç¤ºä¸€ä¸‹
 					//while (octo_model->keyToCoord(*first).x() < view_space->object_center_world(0) - view_space->predicted_size || octo_model->keyToCoord(*first).x() > view_space->object_center_world(0) + view_space->predicted_size
 					//	|| octo_model->keyToCoord(*first).y() < view_space->object_center_world(1) - view_space->predicted_size || octo_model->keyToCoord(*first).y() > view_space->object_center_world(1) + view_space->predicted_size
 					//	|| octo_model->keyToCoord(*first).z() < min(view_space->height_of_ground, view_space->object_center_world(2) - view_space->predicted_size) || octo_model->keyToCoord(*first).z() > view_space->object_center_world(2) + view_space->predicted_size) first++;
 					//octomap::point3d ss = octo_model->keyToCoord(*first);
 					//octomap::point3d ee = octo_model->keyToCoord(*last);
 					//view_space->viewer->addLine<pcl::PointXYZ>(pcl::PointXYZ(ss(0), ss(1), ss(2)), pcl::PointXYZ(ee(0), ee(1), ee(2)), rr, gg, bb, "line" + to_string(pos) + "-" + to_string(x) + "-" + to_string(y));
-					//½«ÉäÏß¼ÓÈëÊÓµãµÄ¼¯ºÏ£¬µÚÒ»¸öÔªËØÓë×îºóÒ»¸öÔªËØkey+Êı×é+Í·+Î²
+					//å°†å°„çº¿åŠ å…¥è§†ç‚¹çš„é›†åˆï¼Œç¬¬ä¸€ä¸ªå…ƒç´ ä¸æœ€åä¸€ä¸ªå…ƒç´ key+æ•°ç»„+å¤´+å°¾
 					Ray* ray = new Ray(*first, *last, ray_set, first, stop);
 					rays.push_back(ray);
 				}
@@ -519,42 +519,42 @@ void ray_cast_thread_process(int* ray_num, Ray_Information** rays_info, unordere
 		cout << pos << "th view out of map.check." << endl;
 	}
 	//cout << "rays " << rays.size() <<" num "<<num<< endl;
-	//¸ÃÊÓµãÉäÏßÏÂ±êµÄÊı×é
+	//è¯¥è§†ç‚¹å°„çº¿ä¸‹æ ‡çš„æ•°ç»„
 	vector<int> ray_ids;
 	ray_ids.resize(rays.size());
-	//×¢Òâ¹«ÓÃµÄÊı¾İ½á¹¹Òª¼ÓËø
+	//æ³¨æ„å…¬ç”¨çš„æ•°æ®ç»“æ„è¦åŠ é”
 	voxel_information->mutex_rays.lock();
-	//»ñÈ¡µ±Ç°ÉäÏßµÄÎ»ÖÃ
+	//è·å–å½“å‰å°„çº¿çš„ä½ç½®
 	int ray_id = (*ray_num);
 	for (int i = 0; i < rays.size(); i++) {
-		//¶ÔÓÚÕâĞ©ÉäÏß£¬hash²éÑ¯Ò»ÏÂÊÇ·ñÓĞÖØ¸´µÄ
+		//å¯¹äºè¿™äº›å°„çº¿ï¼ŒhashæŸ¥è¯¢ä¸€ä¸‹æ˜¯å¦æœ‰é‡å¤çš„
 		auto hash_this_ray = rays_map->find(*rays[i]);
-		//Èç¹ûÃ»ÓĞÖØ¸´µÄ£¬¾Í±£´æ¸ÃÉäÏß
+		//å¦‚æœæ²¡æœ‰é‡å¤çš„ï¼Œå°±ä¿å­˜è¯¥å°„çº¿
 		if (hash_this_ray == rays_map->end()) {
 			(*rays_map)[*rays[i]] = ray_id;
 			ray_ids[i] = ray_id;
-			//´´ÔìÉäÏß¼ÆËãÀà
+			//åˆ›é€ å°„çº¿è®¡ç®—ç±»
 			rays_info[ray_id] = new Ray_Information(rays[i]);
 			vector<int> view_ids;
 			view_ids.push_back(pos);
 			(*rays_to_viwes_map)[ray_id] = view_ids;
 			ray_id++;
 		}
-		//Èç¹ûÓĞÖØ¸´µÄ£¬ËµÃ÷ÆäËûÊÓµãÒ²Ëãµ½ÁË¸ÃÉäÏß£¬¾Í°ÑÏàÓ¦µÄid·ÅÈëÏÂ±êÊı×é
+		//å¦‚æœæœ‰é‡å¤çš„ï¼Œè¯´æ˜å…¶ä»–è§†ç‚¹ä¹Ÿç®—åˆ°äº†è¯¥å°„çº¿ï¼Œå°±æŠŠç›¸åº”çš„idæ”¾å…¥ä¸‹æ ‡æ•°ç»„
 		else {
 			ray_ids[i] = hash_this_ray->second;
 			delete rays[i]->ray_set;
-			//ÆäËûÊÓµãÒÑ¾­¼ÇÂ¼µÄÉäÏß£¬°Ñ±¾ÊÓµãµÄ¼ÇÂ¼·Å½øÈ¥
+			//å…¶ä»–è§†ç‚¹å·²ç»è®°å½•çš„å°„çº¿ï¼ŒæŠŠæœ¬è§†ç‚¹çš„è®°å½•æ”¾è¿›å»
 			vector<int> view_ids = (*rays_to_viwes_map)[ray_ids[i]];
 			view_ids.push_back(pos);
 			(*rays_to_viwes_map)[ray_ids[i]] = view_ids;
 		}
 	}
-	//¸üĞÂÉäÏßÊıÄ¿
+	//æ›´æ–°å°„çº¿æ•°ç›®
 	(*ray_num) = ray_id;
-	//¸üĞÂÊÓµãÓ³ÉäµÄÉäÏßÊı×é
+	//æ›´æ–°è§†ç‚¹æ˜ å°„çš„å°„çº¿æ•°ç»„
 	(*views_to_rays_map)[pos] = ray_ids;
-	//ÊÍ·ÅËø
+	//é‡Šæ”¾é”
 	voxel_information->mutex_rays.unlock();
 }
 
@@ -580,7 +580,7 @@ inline bool is_pixel_in_convex(vector<cv::Point2f>& hull, cv::Point2f& pixel) {
 }
 
 inline vector<cv::Point2f> get_convex_on_image(vector<Eigen::Vector4d>& convex_3d, Eigen::Matrix4d& now_camera_pose_world, rs2_intrinsics& color_intrinsics,int& pixel_interval,double& max_range,double& octomap_resolution) {
-	//Í¶Ó°Á¢·½Ìå¶¥µãÖÁÍ¼Ïñ×ø±êÏµ
+	//æŠ•å½±ç«‹æ–¹ä½“é¡¶ç‚¹è‡³å›¾åƒåæ ‡ç³»
 	double now_range = 0;
 	vector<cv::Point2f> contours;
 	for (int i = 0; i < convex_3d.size(); i++) {
@@ -590,19 +590,19 @@ inline vector<cv::Point2f> get_convex_on_image(vector<Eigen::Vector4d>& convex_3
 		rs2_project_point_to_pixel(pixel, &color_intrinsics, point);
 		contours.push_back(cv::Point2f(pixel[0], pixel[1]));
 		//cout << pixel[0] << " " << pixel[1] << endl;
-		//¼ÆËãÒ»ÏÂ×îÔ¶µãÀë¿ªÊÓµã¾àÀë
+		//è®¡ç®—ä¸€ä¸‹æœ€è¿œç‚¹ç¦»å¼€è§†ç‚¹è·ç¦»
 		Eigen::Vector4d view_pos(now_camera_pose_world(0, 3), now_camera_pose_world(1, 3), now_camera_pose_world(2, 3), 1);
 		now_range = max(now_range, (view_pos - convex_3d[i]).norm());
 	}
 	max_range = min(max_range, now_range);
-	//¼ÆËãÍ¹°ü
+	//è®¡ç®—å‡¸åŒ…
 	vector<cv::Point2f> hull;
 	convexHull(contours, hull, false, true);
 	if (!cv::isContourConvex(hull)) {
 		cout << "no convex. check BBX." << endl;
 		return contours;
 	}
-	//¼ÆËã¿Õ¼ä×îÔ¶Á½µã¾àÀë£¬¼ÆËãÏñËØ×îÔ¶Á½µã¾àÀë£¬¸ù¾İµØÍ¼·Ö±æÂÊµÃµ½ÏñËØÆ«ÒÆ
+	//è®¡ç®—ç©ºé—´æœ€è¿œä¸¤ç‚¹è·ç¦»ï¼Œè®¡ç®—åƒç´ æœ€è¿œä¸¤ç‚¹è·ç¦»ï¼Œæ ¹æ®åœ°å›¾åˆ†è¾¨ç‡å¾—åˆ°åƒç´ åç§»
 	double pixel_dis = 0;
 	double space_dis = 0;
 	for (int i = 0; i < hull.size(); i++)
@@ -627,46 +627,46 @@ inline octomap::point3d project_pixel_to_ray_end(int x,int y, rs2_intrinsics& co
 
 void ray_information_thread_process(int ray_id, Ray_Information** rays_info, unordered_map<Ray, int, Ray_Hash>* rays_map, unordered_map<octomap::OcTreeKey, double, octomap::OcTreeKey::KeyHash>* occupancy_map, unordered_map<octomap::OcTreeKey, double, octomap::OcTreeKey::KeyHash>* object_weight, octomap::ColorOcTree* octo_model, Voxel_Information* voxel_information, View_Space* view_space, short method )
 {
-	//ÓÉÓÚ¼ì²é¹ı£¬ËùÒÔµÚÒ»¸ö½Úµã¾ÍÊÇ·Ç¿Õ½Úµã
+	//ç”±äºæ£€æŸ¥è¿‡ï¼Œæ‰€ä»¥ç¬¬ä¸€ä¸ªèŠ‚ç‚¹å°±æ˜¯éç©ºèŠ‚ç‚¹
 	octomap::KeyRay::iterator first = rays_info[ray_id]->ray->start;
 	octomap::KeyRay::iterator last = rays_info[ray_id]->ray->stop;
 	last--;
 	for (octomap::KeyRay::iterator it = rays_info[ray_id]->ray->start; it != rays_info[ray_id]->ray->stop; ++it) {
-		//´Óhash±íÀï²éÑ¯¸Ãkey
+		//ä»hashè¡¨é‡ŒæŸ¥è¯¢è¯¥key
 		auto hash_this_key = (*occupancy_map).find(*it);
-		//ÕÒ²»µ½½Úµã¾ÍÏÂÒ»¸ö
+		//æ‰¾ä¸åˆ°èŠ‚ç‚¹å°±ä¸‹ä¸€ä¸ª
 		if (hash_this_key== (*occupancy_map).end()) {
 			if (method == RSE && it == last) rays_info[ray_id]->information_gain = 0;
 			continue;
 		}
-		//¶ÁÈ¡½Úµã¸ÅÂÊÖµ
+		//è¯»å–èŠ‚ç‚¹æ¦‚ç‡å€¼
 		double occupancy = hash_this_key->second;
-		//¼ì²éÒ»ÏÂµ±Ç°½ÚµãÊÇ·ñ±»Õ¼¾İ
+		//æ£€æŸ¥ä¸€ä¸‹å½“å‰èŠ‚ç‚¹æ˜¯å¦è¢«å æ®
 		bool voxel_occupied = voxel_information->is_occupied(occupancy);
-		//¼ì²éÒ»ÏÂ½ÚµãÊÇ·ñÎ´Öª
+		//æ£€æŸ¥ä¸€ä¸‹èŠ‚ç‚¹æ˜¯å¦æœªçŸ¥
 		bool voxel_unknown = voxel_information->is_unknown(occupancy);
-		//¶ÁÈ¡Ò»ÏÂ½ÚµãÎªÎïÌå±íÃæÂÊ
+		//è¯»å–ä¸€ä¸‹èŠ‚ç‚¹ä¸ºç‰©ä½“è¡¨é¢ç‡
 		double on_object = voxel_information->voxel_object(*it, object_weight);
-		//Èç¹û±»Õ¼¾İ£¬ÄÇ¾ÍÊÇ×îºóÒ»¸ö½ÚµãÁË
+		//å¦‚æœè¢«å æ®ï¼Œé‚£å°±æ˜¯æœ€åä¸€ä¸ªèŠ‚ç‚¹äº†
 		if (voxel_occupied) last = it;
-		//Èç¹ûfree£¬Ôò³õÊ¼½ÚµãÒª¸üĞÂ
+		//å¦‚æœfreeï¼Œåˆ™åˆå§‹èŠ‚ç‚¹è¦æ›´æ–°
 		if (it==first && (!voxel_unknown&&!voxel_occupied)) first = it;
-		//ÅĞ¶ÏÊÇ·ñ×îºóÒ»¸ö½Úµã
+		//åˆ¤æ–­æ˜¯å¦æœ€åä¸€ä¸ªèŠ‚ç‚¹
 		bool is_end = (it == last);
-		//Í³¼ÆĞÅÏ¢ìØ
+		//ç»Ÿè®¡ä¿¡æ¯ç†µ
 		rays_info[ray_id]->information_gain = information_function(method, rays_info[ray_id]->information_gain, voxel_information->entropy(occupancy), rays_info[ray_id]->visible, voxel_unknown, rays_info[ray_id]->previous_voxel_unknown, is_end, voxel_occupied, on_object, rays_info[ray_id]->object_visible);
 		rays_info[ray_id]->object_visible *= (1 - on_object);
 		if(method == OursIG) rays_info[ray_id]->visible *= voxel_information->get_voxel_visible(occupancy);
 		else rays_info[ray_id]->visible *= occupancy;
 		rays_info[ray_id]->voxel_num++;
-		//Èç¹ûÊÇ×îºóÁË¾ÍÍË³ö
+		//å¦‚æœæ˜¯æœ€åäº†å°±é€€å‡º
 		if (is_end) break;
 	}
 	while (last - first < -1) first--;
 	last++;
-	//¸üĞÂstopÎª×îºóÒ»¸ö½ÚµãºóÒ»¸öµü´úÆ÷
+	//æ›´æ–°stopä¸ºæœ€åä¸€ä¸ªèŠ‚ç‚¹åä¸€ä¸ªè¿­ä»£å™¨
 	rays_info[ray_id]->ray->stop = last;
-	//¸üĞÂstartÎªµÚÒ»¸öµü´úÆ÷
+	//æ›´æ–°startä¸ºç¬¬ä¸€ä¸ªè¿­ä»£å™¨
 	rays_info[ray_id]->ray->start = first;
 }
 
@@ -749,9 +749,9 @@ inline int frontier_check(octomap::point3d node, octomap::ColorOcTree* octo_mode
 			}
 	//edge
 	if (free_cnt >= 1 && occupied_cnt >= 1) return 2;
-	//±ß½ç
+	//è¾¹ç•Œ
 	if (free_cnt >= 1) return 1;
-	//É¶Ò²²»ÊÇ
+	//å•¥ä¹Ÿä¸æ˜¯
 	return 0;
 }
 
@@ -828,7 +828,7 @@ public:
 				}
 			}
 		}
-		if (d[t] == INF) return false;  // µ±Ã»ÓĞ¿ÉÔö¹ãµÄÂ·Ê±ÍË³ö
+		if (d[t] == INF) return false;  // å½“æ²¡æœ‰å¯å¢å¹¿çš„è·¯æ—¶é€€å‡º
 		flow += a[t];
 		cost += d[t] * a[t];
 		for (int u = t; u != s; u = edges[p[u]].from) {
@@ -886,10 +886,6 @@ public:
 };
 
 /*
-0-1 Integer linear program formulation
-Minimize \sum_{s\in S} x_s (minimize the number of sets)
-subject to \sum_{S:e\in S} x_s>=1 for all e\in U  (cover every element of the universe)
-				x_s\in{0,1} for all s\in S  (every set is either in the set cover or not)
 solving by Max Flow
 */
 
@@ -897,13 +893,13 @@ void adjacency_list_thread_process(int ray_id, int* ny, int ray_index_shift, int
 
 class views_voxels_MF {
 public:
-	int nx, ny, nz;										//Èı±ßµÄµãÊı£¬ÊÓµãÊınx£¬ÉäÏßÊıny,ÌåËØÊınz
-	vector<vector<pair<int, double>>>* bipartite_list;	//ÁÚ½Ó±í
+	int nx, ny, nz;										//ä¸‰è¾¹çš„ç‚¹æ•°ï¼Œè§†ç‚¹æ•°nxï¼Œå°„çº¿æ•°ny,ä½“ç´ æ•°nz
+	vector<vector<pair<int, double>>>* bipartite_list;	//é‚»æ¥è¡¨
 	View_Space* view_space;
 	Views_Information* views_information;
 	Voxel_Information* voxel_information;
 	Share_Data* share_data;
-	unordered_map<octomap::OcTreeKey, int, octomap::OcTreeKey::KeyHash>* voxel_id_map;	//ÌåËØÏÂ±ê
+	unordered_map<octomap::OcTreeKey, int, octomap::OcTreeKey::KeyHash>* voxel_id_map;	//ä½“ç´ ä¸‹æ ‡
 	MCMF* mcmf;
 	vector<int> view_id_set;
 
@@ -928,15 +924,15 @@ public:
 		views_information = _views_information;
 		voxel_information = _voxel_information;
 		share_data = _share_data;
-		//ÊÓµã°´ÕÕidÅÅĞò£¬²¢½¨Á¢Èı·ÖÍ¼ÁÚ½Ó±í
+		//è§†ç‚¹æŒ‰ç…§idæ’åºï¼Œå¹¶å»ºç«‹ä¸‰åˆ†å›¾é‚»æ¥è¡¨
 		sort(view_space->views.begin(), view_space->views.end(), view_id_compare);
 		nx = _nx;
 		ny = views_information->ray_num;
 		bipartite_list = new vector<vector<pair<int, double>>>;
 		bipartite_list->resize(nx + ny + share_data->voxels_in_BBX);
-		//½¨Á¢ÌåËØµÄid±í
+		//å»ºç«‹ä½“ç´ çš„idè¡¨
 		voxel_id_map = new unordered_map<octomap::OcTreeKey, int, octomap::OcTreeKey::KeyHash>;
-		//²¢ĞĞ±éÀúÃ¿ÌõÉäÏßÉÏµÄÌåËØÀÛ¼ÓÖÁ¶ÔÓ¦ÊÓµã
+		//å¹¶è¡Œéå†æ¯æ¡å°„çº¿ä¸Šçš„ä½“ç´ ç´¯åŠ è‡³å¯¹åº”è§†ç‚¹
 		nz = 0;
 		thread** adjacency_list_process = new thread * [views_information->ray_num];
 		for (int i = 0; i < views_information->ray_num; i++) {
@@ -945,7 +941,7 @@ public:
 		for (int i = 0; i < views_information->ray_num; i++) {
 			(*adjacency_list_process[i]).join();
 		}
-		//Êä³öÒ»ÏÂ¾ßÌåµÄÍ¼´óĞ¡
+		//è¾“å‡ºä¸€ä¸‹å…·ä½“çš„å›¾å¤§å°
 		if (nz != voxel_id_map->size()) cout << "node_z wrong." << endl;
 		int num_of_all_edge = 0;
 		int num_of_view_edge = 0;
@@ -966,24 +962,24 @@ public:
 };
 
 void adjacency_list_thread_process(int ray_id, int* nz, int ray_index_shift, int voxel_index_shift, unordered_map<octomap::OcTreeKey, int, octomap::OcTreeKey::KeyHash>* voxel_id_map, vector<vector<pair<int, double>>>* bipartite_list, View_Space* view_space, Views_Information* views_information, Voxel_Information* voxel_information, Share_Data* share_data) {
-	//¸ÃÉäÏß±»ÄÄĞ©ÊÓµã¿´µ½£¬¼ÓÈëÍ¼ÖĞ
+	//è¯¥å°„çº¿è¢«å“ªäº›è§†ç‚¹çœ‹åˆ°ï¼ŒåŠ å…¥å›¾ä¸­
 	vector<int> views_id = (*views_information->rays_to_viwes_map)[ray_id];
 	for (int i = 0; i < views_id.size(); i++)
 		(*bipartite_list)[ray_id + ray_index_shift].push_back(make_pair(views_id[i], 0.0));
-	//½ö±£Áô¸ĞĞËÈ¤ÌåËØ
+	//ä»…ä¿ç•™æ„Ÿå…´è¶£ä½“ç´ 
 	double visible = 1.0;
 	octomap::KeyRay::iterator first = views_information->rays_info[ray_id]->ray->start;
 	octomap::KeyRay::iterator last = views_information->rays_info[ray_id]->ray->stop;
 	for (octomap::KeyRay::iterator it = views_information->rays_info[ray_id]->ray->start; it != views_information->rays_info[ray_id]->ray->stop; ++it) {
-		//´Óhash±íÀï²éÑ¯¸Ãkey
+		//ä»hashè¡¨é‡ŒæŸ¥è¯¢è¯¥key
 		auto hash_this_key = (*views_information->occupancy_map).find(*it);
-		//ÕÒ²»µ½½Úµã¾ÍÏÂÒ»¸ö
+		//æ‰¾ä¸åˆ°èŠ‚ç‚¹å°±ä¸‹ä¸€ä¸ª
 		if (hash_this_key == (*views_information->occupancy_map).end()) continue;
-		//¶ÁÈ¡½Úµã¸ÅÂÊÖµ
+		//è¯»å–èŠ‚ç‚¹æ¦‚ç‡å€¼
 		double occupancy = hash_this_key->second;
-		//¶ÁÈ¡Ò»ÏÂ½ÚµãÎªÎïÌå±íÃæÂÊ
+		//è¯»å–ä¸€ä¸‹èŠ‚ç‚¹ä¸ºç‰©ä½“è¡¨é¢ç‡
 		double on_object = voxel_information->voxel_object(*it, views_information->object_weight);
-		//Í³¼ÆĞÅÏ¢ìØ
+		//ç»Ÿè®¡ä¿¡æ¯ç†µ
 		double information_gain = on_object * visible * voxel_information->entropy(occupancy);
 		visible *= voxel_information->get_voxel_visible(occupancy);
 		if (information_gain > share_data->interesting_threshold) {
@@ -991,7 +987,7 @@ void adjacency_list_thread_process(int ray_id, int* nz, int ray_index_shift, int
 			int voxel_id;
 			voxel_information->mutex_rays.lock();
 			auto hash_this_node = voxel_id_map->find(node_y);
-			//Èç¹ûÃ»ÓĞ¼ÇÂ¼£¬¾ÍÊÓÎªĞÂµÄÌåËØ
+			//å¦‚æœæ²¡æœ‰è®°å½•ï¼Œå°±è§†ä¸ºæ–°çš„ä½“ç´ 
 			if (hash_this_node == voxel_id_map->end()) {
 				voxel_id = (*nz) + voxel_index_shift;
 				(*voxel_id_map)[node_y] = voxel_id;
@@ -1001,7 +997,7 @@ void adjacency_list_thread_process(int ray_id, int* nz, int ray_index_shift, int
 				voxel_id = hash_this_node->second;
 			}
 			voxel_information->mutex_rays.unlock();
-			//¶ÔÓÚÃ¿¸öÊÓµã£¬Í³¼Æ¸ÃÌåËØµÄidÓë¼ÛÖµ
+			//å¯¹äºæ¯ä¸ªè§†ç‚¹ï¼Œç»Ÿè®¡è¯¥ä½“ç´ çš„idä¸ä»·å€¼
 			for (int i = 0; i < views_id.size(); i++)
 			{
 				(*voxel_information->mutex_voxels[voxel_id - voxel_index_shift]).lock();
