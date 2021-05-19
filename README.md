@@ -7,6 +7,6 @@ We tested our codes on Windows 10. For other system, please check the file read/
 ## Note
 Change "const static size_t maxSize = 100000;" to "const static size_t maxSize = 1000" in file OcTreeKey.h, so that the code will run faster.
 ## Usage
-1
+1. Sample your 3d object model from *.obj or *.ply to *.pcd
 ## Questions
 Please contact 18210240033@fudan.edu.cn
