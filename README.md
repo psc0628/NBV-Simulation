@@ -11,6 +11,6 @@ Change "const static size_t maxSize = 100000;" to "const static size_t maxSize =
 2. Change the directory and model name in file DefaultConfiguration.yaml.
 3. Put the file DefaultConfiguration.yaml in the correct path, and then run compiled program of main.cpp.
 4. For the method_of_IG: Ours is 0, OA is 1, UV is 2, RSE is 3, APORA is 4, Kr is 5, NBVNET is 6. If you want to run with NBV-Net, please check nbv_net_path in file DefaultConfiguration.yaml, and run both compiled program of main.cpp and "python nbv_net/run_test.py {}" (replace {} by your model name ) in pytorch environment at the same time.
-5. There is a parameter "show", by default is 1, which means that the middle cloud will be shown in a pcl window, close it to continue. If you don't want to show the middle cloud, change it to 0.
+5. There is a parameter "show", by default is 1, which means that the middle cloud will be shown in a pcl window, and close it to continue. If you don't want to show the middle cloud, change it to 0.
 ## Questions
 Please contact 18210240033@fudan.edu.cn
